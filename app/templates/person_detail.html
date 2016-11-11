@@ -3,10 +3,16 @@
 
 {% from 'macros.html' import listPersonFields %}
 
+{# Show details for a person.
+    Also lists all users attached to that person
+    and allows one to edit or add users.
+    Allows deletion of the person if current user is admin. #}
 {% block content %}
-  <h1>Person Details</h1><br>
+  <h1>Person Details</h1>
     <hr>
+    <div class="section">
         {{ listPersonFields(person) }}
+    {% if g.user.user_class == 'a' %}
         <hr>
         <p>
             Users:
@@ -26,4 +32,6 @@
         <p>
             <a href="{{ url_for('delete_person', personId=person.person_id) }}">Delete this Person</a>
         </p>
+    {% endif %}
+    </div>
 {% endblock %}

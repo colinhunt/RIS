@@ -1,10 +1,14 @@
 <!-- extend from base layout -->
 {% extends "base.html" %}
 
+{# List all users with add, edit, and delete functionality. #}
 {% block content %}
-  <h1>User List</h1><br>
+  <h1>User List</h1>
+  <div class="nav-links">
     <a href="{{ url_for('add_user') }}">Add User</a>
+  </div>
     <hr>
+    <div class="section">
     {% for user in users %}
         <p>
             Username: {{ user.user_name }}
@@ -27,4 +31,5 @@
         </p>
         <hr>
     {% endfor %}
+    </div>
 {% endblock %}

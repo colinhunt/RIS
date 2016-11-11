@@ -8,21 +8,33 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
   </head>
   <body>
-    <div>Radiology Info System:
+  <div class="page">
+    <div class="title"><h1>Radiology Info System</h1></div>
+    <div class="nav-links">
         <a href="{{ url_for('index') }}">Home</a>
-        <a href="{{ url_for('login') }}">Login</a>
         <a href="{{ url_for('user_management') }}">Users</a>
+        <a href="{{ url_for('list_records') }}">Records</a>
+        {% if g.user.is_authenticated() %}
+            {% if g.user.user_class == 'a' %}
+                <a href="{{ url_for('data_analysis') }}">Data Analysis</a>
+                <a href="{{ url_for('report_generator') }}">Report Generator</a>
+            {% endif %}
+            |<form style="display: inline;" action="{{ url_for('search') }}" method="post"  name="search">{{ g.search_form.hidden_tag() }}{{ g.search_form.search(size=20) }}
+<input type="submit" value="Search"></form>
+            Logged in as '{{ g.user.user_name }}'
+            <a href="{{ url_for('person_detail', personId=g.user.person_id) }}">Profile</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        {% else %}
+            |
+            <a href="{{ url_for('login') }}">Login</a>
+        {% endif %}
+        <a href="http://ris.markgalloway.ca/doc/391_user_manual.pdf">User Manual</a>
     </div>
     <hr>
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul>
-        {% for message in messages %}
-            <li>{{ message }} </li>
-        {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
+    {% for message in get_flashed_messages() %}
+        <div class=flash>{{ message }}</div>
+    {% endfor %}
     {% block content %}{% endblock %}
+    </div>
   </body>
 </html>

@@ -1,5 +1,11 @@
 from app import db
 
+import sys
+if sys.version_info >= (3, 0):
+    enable_search = False
+else:
+    enable_search = True
+    import flask.ext.whooshalchemy as whooshalchemy
 
 class Doctor(db.Model):
     """To indicate who is whose family doctor"""
@@ -34,8 +40,8 @@ class Person(db.Model):
     # Relationships
     users = db.relationship('User', backref='person')
     doctors = db.relationship('Person', secondary='family_doctor',
-                              primaryjoin=person_id==Doctor.patient_id,
-                              secondaryjoin=person_id==Doctor.doctor_id,
+                              primaryjoin=person_id == Doctor.patient_id,
+                              secondaryjoin=person_id == Doctor.doctor_id,
                               backref=db.backref('patients', lazy='dynamic'))
 
     def __repr__(self):
@@ -55,6 +61,22 @@ class User(db.Model):
     date_registered = db.Column(db.Date)
     person_id = db.Column(db.Integer, db.ForeignKey('persons.person_id'))
 
+    # Required for Flask-Login to use this as a User class
+    def is_authenticated(self):
+        return True
+
+    # Required for Flask-Login to use this as a User class
+    def is_active(self):
+        return True
+
+    # Required for Flask-Login to use this as a User class
+    def is_anonymous(self):
+        return False
+
+    # Required for Flask-Login to use this as a User class
+    def get_id(self):
+        return str(self.user_name)
+
     def __repr__(self):
         return '<User %r>' % (self.user_name)
 
@@ -62,7 +84,7 @@ class User(db.Model):
 class Record(db.Model):
     """To store the radiology records"""
     __tablename__ = 'radiology_record'
-
+    __searchable__ = ['test_type', 'prescriding_date', 'test_date', 'diagnosis', 'description']
     # Fields
     record_id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('persons.person_id'))
@@ -87,11 +109,16 @@ class Record(db.Model):
 class Image(db.Model):
     """To store the pacs images"""
     __tablename__ = 'pacs_images'
+
     image_id = db.Column(db.Integer, primary_key=True)
-    record_id = db.Column(db.Integer, db.ForeignKey('radiology_record.record_id'), primary_key=True)
+    record_id = db.Column(db.Integer, db.ForeignKey('radiology_record.record_id'))
     thumbnail = db.Column(db.BLOB)
     regular_size = db.Column(db.BLOB)
     full_size = db.Column(db.BLOB)
 
     def __repr__(self):
         return '<Pacs Image %r %r>' % (self.image_id, self.record_id)
+
+if enable_search:
+    whooshalchemy.whoosh_index(app, Record)
+
